@@ -1,8 +1,8 @@
 <?php
 
 /**********************************************************************
- * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/xmlrpc/konto_xmlrpc.php,v $
- * $Revision: 1.2 $
+ * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/xmlrpc/auftrag_xmlrpc.php,v $
+ * $Revision: 1.1 $
  * $Date: 2011/06/21 17:42:51 $
  *
  * Copyright (c) by willuhn - software & services
@@ -13,9 +13,9 @@
 namespace hibiscus\xmlrpc;
 
 /**
- * XML-RPC-Implementierung der Konto-Bean.
+ * XML-RPC-Implementierung eines Einzel-Auftrages.
  */
-class konto_xmlrpc extends \hibiscus\konto
+class auftrag_xmlrpc extends \hibiscus\auftrag
 {
 }
 

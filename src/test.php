@@ -4,7 +4,8 @@
 
   try
   {
-    $TEST_BLZ = "10010010";
+    $TEST_BLZ   = "10010010";
+    $TEST_KONTO = null;
     
     $conn = hibiscus::connect("xmlrpc","localhost","test");
 
@@ -15,6 +16,7 @@
     foreach ($konten as $konto)
     {
       print($konto->id.": ".$konto->bezeichnung."\n");
+      $TEST_KONTO = $konto->id;
     }
     //
     ////////////////////////////////////////////////////////////////////////////
@@ -45,9 +47,30 @@
     }
     //
     ////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////////////////////////////
+    //
+    print("\nTest 5: Ueberweisung anlegen\n");
+    
+    $ueberweisung = new hibiscus\auftrag();
+    $ueberweisung->konto       = $TEST_KONTO;
+    $ueberweisung->betrag      = "10,99";
+    $ueberweisung->blz         = "12345678";
+    $ueberweisung->kontonummer = "123456790";
+    $ueberweisung->name        = "Max Mustermann";
+    $ueberweisung->addVerwendungszweck("Zeile 1");
+    $ueberweisung->addVerwendungszweck("Zeile 2");
+        
+    $conn->createUeberweisung($ueberweisung);
+    print("ID: ".$ueberweisung->id);
+    //
+    ////////////////////////////////////////////////////////////////////////////
+    
+    print("\n\n");
+    
   }
   catch (Exception $e)
   {
-    print($e->getMessage()."\n");
+    print("\n\nFehler: ".$e->getMessage()."\n");
   }
 ?>

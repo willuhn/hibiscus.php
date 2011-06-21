@@ -2,8 +2,8 @@
 
 /**********************************************************************
  * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/iconnector.php,v $
- * $Revision: 1.2 $
- * $Date: 2011/06/21 15:23:51 $
+ * $Revision: 1.3 $
+ * $Date: 2011/06/21 17:42:51 $
  *
  * Copyright (c) by willuhn - software & services
  * All rights reserved
@@ -14,6 +14,7 @@ namespace hibiscus;
 
 require_once("konto.php");
 require_once("umsatz.php");
+require_once("auftrag.php");
 
 /**
  * Interface des Connectors.
@@ -60,6 +61,14 @@ interface iconnector
    * @param Liste der gefundenen Umsaetze als Objekte des Typs "umsatz".
    */
   public function getUmsaetze($query = array());
+  
+  /**
+   * Erzeugt eine neue Ueberweisung.
+   * @param $auftrag der zu erstellende Auftrag.
+   *        Objekt vom Typ "auftrag".
+   * Die Funktion wirft eine Exception, wenn das Anlegen fehlschlug.
+   */
+  public function createUeberweisung(\hibiscus\auftrag $auftrag);
   
   /**
    * Fuehrt eine Pruefsummenberechnung fuer die Bankverbindung durch.

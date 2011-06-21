@@ -2,8 +2,8 @@
 
 /**********************************************************************
  * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/xmlrpc/connector.php,v $
- * $Revision: 1.2 $
- * $Date: 2011/06/21 15:23:51 $
+ * $Revision: 1.3 $
+ * $Date: 2011/06/21 17:42:51 $
  *
  * Copyright (c) by willuhn - software & services
  * All rights reserved
@@ -16,6 +16,7 @@ require_once("lib/xmlrpc.inc");
 require_once("lib/xmlrpc_wrappers.inc");
 require_once("konto_xmlrpc.php");
 require_once("umsatz_xmlrpc.php");
+require_once("auftrag_xmlrpc.php");
 
 /**
  * Implementierung des Connectors via XML-RPC.
@@ -70,6 +71,9 @@ class connector implements \hibiscus\iconnector
    */
   public function __construct($server="localhost",$password="jameica",$port=8080)
   {
+	  $GLOBALS['xmlrpc_null_extension']       = true;
+    $GLOBALS['xmlrpc_null_apache_encoding'] = true;
+    
     $this->client = new \xmlrpc_client("https://admin:".$password."@".$server.":".$port."/xmlrpc/");
     $this->client->setDebug(\hibiscus\xmlrpc\connector::$DEBUG);
     $this->client->setSSLVerifyHost(\hibiscus\xmlrpc\connector::$SSL_VERIFY);
@@ -86,7 +90,7 @@ class connector implements \hibiscus\iconnector
     $result = array();
     for ($i=0;$i<$value->arraySize();$i++)
     {
-      $bean = new konto_xmlrpc($value->arrayMem($i));
+      $bean = $this->createBean("konto_xmlrpc",$value->arrayMem($i));
       array_push($result,$bean);
     }
     return $result;
@@ -107,10 +111,44 @@ class connector implements \hibiscus\iconnector
     $result = array();
     for ($i=0;$i<$value->arraySize();$i++)
     {
-      $bean = new umsatz_xmlrpc($value->arrayMem($i));
+      $bean = $this->createBean("umsatz_xmlrpc",$value->arrayMem($i));
       array_push($result,$bean);
     }
     return $result;
+  }
+
+  /**
+   * @see hibiscus.iconnector::createUeberweisung()
+   */
+  public function createUeberweisung(\hibiscus\auftrag $auftrag)
+  {
+    $value = $this->send("hibiscus.xmlrpc.ueberweisung.create",array(new \xmlrpcval($this->createParams($auftrag),"struct")));
+    $result = $value->scalarVal();
+    
+    // Moegliche Faelle:
+    // a) xmlrpc.supports.null = true:   (DEFAULT)
+    //    a1) OK     = return NULL
+    //    a2) FEHLER = return Fehlertext
+    // b) xmlrpc.supports.null = false:
+    //    b1) OK     = return ID
+    //    b2) FEHLER = throws Exception
+    
+    // a1)
+    if ($result == null)
+      return;
+      
+    if (preg_match("/^[0-9]{1,9}$/",$result)) 
+    {
+      // b1)
+      $auftrag->id = $result;
+      return; // Ist die ID
+    }
+    
+    // a2)
+    throw new \Exception($result);
+    
+    // b2)
+    // muss nicht behandelt werden - fliegt durch
   }
   
   /**
@@ -144,6 +182,99 @@ class connector implements \hibiscus\iconnector
       throw new \Exception($response->faultString());
     
     return $response->value();
+  }
+  
+  /**
+   * Erzeugt die Bean und uebernimmt die Properties des XML-RPC-Response.
+   * @param $class die Klasse der Bean.
+   * @param $xmlrpc das XML-RPC-Response.
+   * @return die erzeugte Bean mit den Properties.
+   */
+  private function createBean($class,$xmlrpc)
+  {
+    $class = "\\hibiscus\\xmlrpc\\".$class; // Namespace noch davor schreiben
+    $bean = new $class();
+    
+    while (list($key, $value) = $xmlrpc->structEach())
+    {
+      $bean->{$key} = $this->unserialize($value);
+    }
+    return $bean;
+  }
+  
+  /**
+   * Erzeugt das XML-RPC-Parameter-Set fuer die Bean.
+   * @param $bean die Bean, fuer die XML-RPC-Parameter erstellt werden sollen.
+   */
+  private function createParams($bean)
+  {
+    $params = array();
+    $props = get_object_vars($bean);
+    
+    foreach($props as $key => $value)
+    {
+      $params[$key] = $this->serialize($value);
+    }
+    return $params;
+  }
+  
+  /**
+   * Serialisiert einen Wert rekursiv nach XML-RPC.
+   * @param $value der zu serialisierende Wert.
+   */
+  private function serialize($value)
+  {
+    if (is_array($value))
+    {
+      $lines = array();
+      foreach ($value as $line)
+      {
+        // TODO mit count(array_filter(array_keys($arr),'is_string')) == count($arr)
+        // kann ich noch checken, ob es ein assoziatives Array ist
+        array_push($lines,$this->serialize($line));
+      }
+      return new \xmlrpcval($lines,"array");
+    }
+    return new \xmlrpcval($value,"string");
+  }
+  
+  /**
+   * Deserialisiert rekursiv einen XML-RPC-Wert.
+   * @param $value der zu deserialisierende Wert.
+   */
+  private function unserialize($value)
+  {
+    $type = $value->kindOf();
+    
+    if (!$type)
+      return $value;
+      
+    if ($type == "scalar")
+      return $value->scalarVal();
+      
+    if ($type == "struct")
+    {
+      $values = array();
+      $value->structReset();
+      while (list($key, $v) = $val->structEach())
+      {
+        $values[$key] = $this->unserialize($v);
+      }
+      return $values;
+    }
+    
+    if ($type == "array")
+    {
+      $values = array();
+      for ($i=0;$i<$value->arraySize();$i++)
+      {
+        $v = $value->arrayMem($i);
+        array_push($values,$this->unserialize($v));
+      }
+      return $values;
+    }
+    
+    return $value;
   }
 }
 
