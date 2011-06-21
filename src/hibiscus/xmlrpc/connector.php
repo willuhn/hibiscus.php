@@ -2,8 +2,8 @@
 
 /**********************************************************************
  * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/xmlrpc/connector.php,v $
- * $Revision: 1.1 $
- * $Date: 2011/06/21 13:18:09 $
+ * $Revision: 1.2 $
+ * $Date: 2011/06/21 15:23:51 $
  *
  * Copyright (c) by willuhn - software & services
  * All rights reserved
@@ -15,10 +15,10 @@ namespace hibiscus\xmlrpc;
 require_once("lib/xmlrpc.inc");
 require_once("lib/xmlrpc_wrappers.inc");
 require_once("konto_xmlrpc.php");
+require_once("umsatz_xmlrpc.php");
 
 /**
  * Implementierung des Connectors via XML-RPC.
- * @author willuhn
  */
 class connector implements \hibiscus\iconnector
 {
@@ -91,6 +91,27 @@ class connector implements \hibiscus\iconnector
     }
     return $result;
   }
+
+  /**
+   * @see hibiscus.iconnector::getUmsaetze()
+   */
+  public function getUmsaetze($query = array())
+  {
+    $params = array();
+    while (list($key,$value) = each($query))
+    {
+      $params[$key] = new \xmlrpcval($value,"string");
+    }
+    $value = $this->send("hibiscus.xmlrpc.umsatz.list",array(new \xmlrpcval($params,"struct")));
+
+    $result = array();
+    for ($i=0;$i<$value->arraySize();$i++)
+    {
+      $bean = new umsatz_xmlrpc($value->arrayMem($i));
+      array_push($result,$bean);
+    }
+    return $result;
+  }
   
   /**
    * @see hibiscus.iconnector::checkCRC()
@@ -119,6 +140,9 @@ class connector implements \hibiscus\iconnector
   {
     $msg = new \xmlrpcmsg($method,$params);
     $response = $this->client->send($msg);
+    if ($response->faultCode())
+      throw new \Exception($response->faultString());
+    
     return $response->value();
   }
 }
