@@ -2,8 +2,8 @@
 
 /**********************************************************************
  * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/iconnector.php,v $
- * $Revision: 1.3 $
- * $Date: 2011/06/21 17:42:51 $
+ * $Revision: 1.4 $
+ * $Date: 2011/06/21 17:58:40 $
  *
  * Copyright (c) by willuhn - software & services
  * All rights reserved
@@ -61,6 +61,12 @@ interface iconnector
    * @param Liste der gefundenen Umsaetze als Objekte des Typs "umsatz".
    */
   public function getUmsaetze($query = array());
+  
+  ///////////////////////////
+  // TODO Factory zum Erzeugen von Beans
+  // Dann haben die naemlich den korrekten Typ - also z.Bsp. den von xmlrpc
+  // Dann geht auch das Ueberschreiben der Setter und Getter in createParams und createBean
+  ///////////////////////////
   
   /**
    * Erzeugt eine neue Ueberweisung.

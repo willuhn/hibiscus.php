@@ -2,8 +2,8 @@
 
 /**********************************************************************
  * $Source: /cvsroot/hibiscus/hibiscus.php/src/hibiscus/xmlrpc/connector.php,v $
- * $Revision: 1.3 $
- * $Date: 2011/06/21 17:42:51 $
+ * $Revision: 1.4 $
+ * $Date: 2011/06/21 17:58:40 $
  *
  * Copyright (c) by willuhn - software & services
  * All rights reserved
@@ -133,22 +133,18 @@ class connector implements \hibiscus\iconnector
     //    b1) OK     = return ID
     //    b2) FEHLER = throws Exception
     
-    // a1)
-    if ($result == null)
+    if ($result == null) // a1)
       return;
       
     if (preg_match("/^[0-9]{1,9}$/",$result)) 
     {
-      // b1)
-      $auftrag->id = $result;
-      return; // Ist die ID
+      $auftrag->id = $result; // b1)
+      return;
     }
     
-    // a2)
-    throw new \Exception($result);
+    throw new \Exception($result); // a2)
     
-    // b2)
-    // muss nicht behandelt werden - fliegt durch
+    // b2) muss nicht behandelt werden - fliegt durch
   }
   
   /**
@@ -197,7 +193,12 @@ class connector implements \hibiscus\iconnector
     
     while (list($key, $value) = $xmlrpc->structEach())
     {
-      $bean->{$key} = $this->unserialize($value);
+      // Checken, ob ein Setter existiert
+      $method = "set".ucfirst($key);
+      if (method_exists($bean,$method))
+        $bean->${method}($value);
+      else
+        $bean->{$key} = $this->unserialize($value);
     }
     return $bean;
   }
@@ -213,7 +214,11 @@ class connector implements \hibiscus\iconnector
     
     foreach($props as $key => $value)
     {
-      $params[$key] = $this->serialize($value);
+      $method = "get".ucfirst($key);
+      if (method_exists($bean,$method))
+        $params[$key] = $bean->${method}();
+      else
+        $params[$key] = $this->serialize($value);
     }
     return $params;
   }
