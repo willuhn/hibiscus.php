@@ -122,7 +122,15 @@ class connector implements \hibiscus\iconnector
    */
   public function createUeberweisung(\hibiscus\auftrag $auftrag)
   {
-    $value = $this->send("hibiscus.xmlrpc.ueberweisung.create",array(new \xmlrpcval($this->createParams($auftrag),"struct")));
+    return $this->createAuftrag("hibiscus.xmlrpc.ueberweisung.create",$auftrag);
+  }
+
+  /**
+   * @see hibiscus.iconnector::createAuftrag()
+   */
+  public function createAuftrag($typ,\hibiscus\auftrag $auftrag)
+  {
+    $value = $this->send("hibiscus.xmlrpc.".$typ.".create",array(new \xmlrpcval($this->createParams($auftrag),"struct")));
     $result = $value->scalarVal();
     
     // Moegliche Faelle:
@@ -146,6 +154,59 @@ class connector implements \hibiscus\iconnector
     
     // b2) muss nicht behandelt werden - fliegt durch
   }
+  
+  
+  /**
+   * @see hibiscus.iconnector::createSammelAuftrag()
+   */
+  public function createSammelAuftrag($typ,$auftragname,  $auftraege)
+  {
+
+  	
+
+  	
+  	$filter=array("kontonummer","name","blz","betrag","endtoendid","creditorid","mandateid","sigdate","verwendungszweck");
+  	
+  	$auftragsarray=array();
+  	foreach($auftraege as $auftrag)
+  	{
+  		$auftragsarray[]=new \xmlrpcval($this->createFilteredParams($auftrag, $filter),"struct");
+  	}	
+  	
+  	
+  	$filter=array("konto","sequencetype","sepatype","targetdate","termin");
+  	
+  	$parameter=$this->createFilteredParams($auftraege[0], $filter);
+  	$parameter["name"]=new \xmlrpcval($auftragname,"string");
+  	$parameter["buchungen"] = new \xmlrpcval($auftragsarray,"array");
+  	$params = new \xmlrpcval($parameter,"struct");
+  	echo __FILE__." ".__LINE__."<br />\n";
+  	$value = $this->send("hibiscus.xmlrpc.".$typ.".create",array($params));
+  	$result = $value->scalarVal();
+  	
+  	// Moegliche Faelle:
+  	// a) xmlrpc.supports.null = true:   (DEFAULT)
+  	//    a1) OK     = return NULL
+  	//    a2) FEHLER = return Fehlertext
+  	// b) xmlrpc.supports.null = false:
+  	//    b1) OK     = return ID
+  	//    b2) FEHLER = throws Exception
+  	
+  	if ($result == null) // a1)
+  		return;
+  	
+  	if (preg_match("/^[0-9]{1,9}$/",$result))
+  	{
+  		//$auftrag->id = $result; // b1)
+  		return $result;
+  	}
+  	
+  	throw new \Exception($result); // a2)
+  	
+  	// b2) muss nicht behandelt werden - fliegt durch
+  }
+  
+  
   
   /**
    * @see hibiscus.iconnector::checkCRC()
@@ -223,6 +284,32 @@ class connector implements \hibiscus\iconnector
     return $params;
   }
   
+  
+  
+  /**
+   * Erzeugt das XML-RPC-Parameter-Set fuer die Bean.
+   * @param $bean die Bean, fuer die XML-RPC-Parameter erstellt werden sollen.
+   * @param $filter Array mit werten die übernommen werden sollen
+   */
+  private function createFilteredParams($bean,$filter)
+  {
+  	$params = array();
+  	$props = get_object_vars($bean);
+  
+  	foreach($props as $key => $value)
+  	{
+  		if(in_array($key,$filter))
+  		{	
+  		$method = "get".ucfirst($key);
+  		if (method_exists($bean,$method))
+  			$params[$key] = $bean->${method}();
+  		else
+  			$params[$key] = $this->serialize($value);
+  		}
+  	}
+  	return $params;
+  }
+  
   /**
    * Serialisiert einen Wert rekursiv nach XML-RPC.
    * @param $value der zu serialisierende Wert.
@@ -261,7 +348,8 @@ class connector implements \hibiscus\iconnector
     {
       $values = array();
       $value->structReset();
-      while (list($key, $v) = $val->structEach())
+      $i=0;
+      while (list($key, $v) = $value->structEach())
       {
         $values[$key] = $this->unserialize($v);
       }
@@ -281,6 +369,45 @@ class connector implements \hibiscus\iconnector
     
     return $value;
   }
+  
+  /**
+   * 
+   * @param unknown $typ
+   * @param string $text
+   * @param string $von
+   * @param string $bis
+   */
+  public function find($typ,$text=null,$von=null,$bis=null)
+  {
+  	$params = array();
+  	
+  	$params[]=$text;
+  	$params[]=$von;
+  	$params[]=bis;
+  	
+  	
+  	$value = $this->send("hibiscus.xmlrpc.".$typ.".find",array(new \xmlrpcval($text,"string"),new \xmlrpcval($von,"string"),new \xmlrpcval($bis,"string")));
+  	$result = array();
+  	for ($i=0;$i<$value->arraySize();$i++)
+  	{
+  	$bean = $this->createBean("auftrag_xmlrpc",$value->arrayMem($i));
+  	array_push($result,$bean);
+  	}
+  	return $result;
+  	
+  }
+  
+  
+  /**
+   * 
+   * @param unknown $id
+   */
+ public function delete($typ,$id)
+ {
+ 	$value = $this->send("hibiscus.xmlrpc.".$typ.".delete",array(new \xmlrpcval($id,"string")));
+ 	return $value;
+ }
+  
 }
 
 ?>

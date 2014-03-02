@@ -80,6 +80,62 @@ class auftrag
   {
     array_push($this->verwendungszweck,$line);
   }
+  
+  /**
+   * Die optionale End2End-ID fuer SEPA.
+   */
+   public $endtoendid= null;
+   
+   /**
+    * Die Mandats-ID.
+    */
+   public $mandateid= null;
+   
+   /**
+    * Die Glaeubiger-ID.
+    */
+   public $creditorid= null;
+   
+   /**
+    * Das Datum der Unterschrift des Mandats.
+    */
+   public $sigdate= null;
+   
+
+   /**
+    * Sequenz-Typ: 
+    * FRST fuer Erst-Einzug.
+    * RCUR fuer Folge-Einzug.
+    * OOFF fuer Einmal-Einzug.
+    * FNAL fuer letztmaligen Einzug.
+    */
+   public $sequencetype= null;
+
+   /**
+    * Basis-Lastschrift
+    *   CORE("LastSEPA","Basis-Lastschrift"),
+    * Basis-Lastschrift mit verkuerztem Vorlauf.
+    *   COR1("LastCOR1SEPA","Basis-Lastschrift (kurzer Vorlauf)"),     
+    * B2B-Lastschrift
+    *   B2B("LastB2BSEPA","B2B-Lastschrift")
+    */
+   public $sepatype= null;
+
+   
+   /**
+    * Das Ziel-Ausfuehrungsdatum bei der Bank.
+    */
+   public $targetdate= null;
+   
+   
+   public $termin=null;
+   
+   /**
+    * 
+    * @var $buchungen enthält die einzelBuchungen bei Sammelaufträgen
+    */
+   public $buchungen=null;
+  
 
 }
 

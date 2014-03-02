@@ -77,6 +77,35 @@ interface iconnector
   public function createUeberweisung(\hibiscus\auftrag $auftrag);
   
   /**
+   * Erzeugt eine neue Auftrag.
+   * 
+   * @param $typ Art des Auftrages.
+   * @param $auftrag der zu erstellende Auftrag.
+   *        Objekt vom Typ "auftrag".
+   * Die Funktion wirft eine Exception, wenn das Anlegen fehlschlug.
+   */
+  public function createAuftrag($typ,\hibiscus\auftrag $auftrag);
+  
+  
+  
+
+  /**
+   * Erzeugt eine neuen Sammelauftrag.
+   * 
+   *
+   * @param $typ Art des Auftrages.
+   * @param $auftragname Name des Auftrages
+   * @param $sammelauftrag Array mit Auftraegen vom Typ "auftrag".
+   * 	aus dem ersten Auftrag werden die Daten:   konto,    sequencetype,    sepatype,    targetdate,    termin
+   *  für den Sammelauftrag verwendet.
+   * @return Id des Auftrages im Erfolgsfall 
+   *        
+   * Die Funktion wirft eine Exception, wenn das Anlegen fehlschlug.
+   */
+  public function createSammelAuftrag($typ, $auftragname, $sammelauftrag);
+  
+   
+  /**
    * Fuehrt eine Pruefsummenberechnung fuer die Bankverbindung durch.
    * @param $blz die BLZ.
    * @param $kontonummer die Kontonummer.
@@ -90,6 +119,28 @@ interface iconnector
    * @return Name des Geldinstitutes.
    */
   public function getBankname($blz);
+  
+  /**
+  * Liefert eine Liste von Auftraegen.
+  * @param text optionaler Suchbegriff. Gesucht wird in
+  *  - allen Verwendungszweck-Zeilen
+  *  - Name des Gegenkonto-Inhabers
+  *  - Nummer des Gegenkontos
+  * @param von optionale Angabe des Start-Datums.
+  * @param bis optionale Angabe des End-Datums.
+  * @return Liste der gefundenen Auftraege.
+  * @throws RemoteException
+  */
+  public function find($typ,$text=null,$von=null,$bis=null);
+  
+  /**
+   * Loescht den Auftrag mit der angegebenen ID.
+   * @param id die ID des Auftrages.
+   * @return siehe {@link BaseUeberweisungService#create(Map)}
+   * @throws RemoteException
+   */
+  public function delete($typ,$id);
+  
 }
 
 ?>
