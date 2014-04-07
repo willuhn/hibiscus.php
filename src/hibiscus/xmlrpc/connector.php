@@ -161,10 +161,6 @@ class connector implements \hibiscus\iconnector
    */
   public function createSammelAuftrag($typ,$auftragname,  $auftraege)
   {
-
-  	
-
-  	
   	$filter=array("kontonummer","name","blz","betrag","endtoendid","creditorid","mandateid","sigdate","verwendungszweck");
   	
   	$auftragsarray=array();
@@ -397,17 +393,25 @@ class connector implements \hibiscus\iconnector
   	
   }
   
-  
   /**
-   * 
-   * @param unknown $id
+   * @see hibiscus.iconnector::delete()
    */
- public function delete($typ,$id)
- {
- 	$value = $this->send("hibiscus.xmlrpc.".$typ.".delete",array(new \xmlrpcval($id,"string")));
- 	return $value;
- }
-  
+  public function delete($typ,$id)
+  {
+    $value = $this->send("hibiscus.xmlrpc.".$typ.".delete",array(new \xmlrpcval($id,"string")));
+    return $value;
+  }
+
+  /**
+   * @see hibiscus.iconnector::calculateIBAN()
+   */
+  public function calculateIBAN($blz,$kontonummer)
+  {
+    $result=array();
+    $value = $this->send("hibiscus.xmlrpc.konto.getIBAN",array(new \xmlrpcval($blz,"string"), new \xmlrpcval($kontonummer,"string")) );
+    return $this->unserialize($value);
+  }
+ 
 }
 
 ?>

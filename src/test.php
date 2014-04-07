@@ -4,12 +4,13 @@
 
   try
   {
-    $TEST_BLZ   = "10010010";
+    $TEST_BLZ   = "87080000";
+    $TEST_KONTO_NR = "581317700";
     $TEST_KONTO = null;
     
     $TEST_IBAN   = "DE000000000000";
     $TEST_NAME   = "Max Mustermann";
-    $TEST_CREDITOR ="DE48ZZZ00000000000"
+    $TEST_CREDITOR ="DE48ZZZ00000000000";
     
     $conn = hibiscus::connect("xmlrpc","localhost","test");
 
@@ -39,6 +40,10 @@
     print("\nTest 3: Bankverbindung checken\n");
     print("Konto 1234567890 gueltig: ".($conn->checkCRC($TEST_BLZ,"1234567890") ? "ja" : "nein")."\n");
     print("Konto 1234567891 gueltig: ".($conn->checkCRC($TEST_BLZ,"1234567898") ? "ja" : "nein")."\n");
+    
+   
+    $k=$conn->getIBAN($TEST_BLZ,$TEST_KONTO_NR) ;
+    print("IBAN fuer Konto $TEST_KONTO_NR, BLZ $TEST_BLZ  : ". $k[0]. " Bic: ".$k[1]."\n");
     //
     ////////////////////////////////////////////////////////////////////////////
 

@@ -141,6 +141,14 @@ interface iconnector
    */
   public function delete($typ,$id);
   
+  
+  /**
+   * Ermittelt aus Kontonr und Blz die Iban und BIC.
+   * @param $blz die BLZ.
+   * @param $kontonummer die Kontonummer.
+   * @return liefert Array mit IBAN (auf Index 0) und BIC (auf Index 1).
+   */
+  public function calculateIBAN($blz,$kontonummer);
 }
 
 ?>
