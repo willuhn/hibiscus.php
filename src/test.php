@@ -42,7 +42,7 @@
     print("Konto 1234567891 gueltig: ".($conn->checkCRC($TEST_BLZ,"1234567898") ? "ja" : "nein")."\n");
     
    
-    $k=$conn->getIBAN($TEST_BLZ,$TEST_KONTO_NR) ;
+    $k=$conn->calculateIBAN($TEST_BLZ,$TEST_KONTO_NR) ;
     print("IBAN fuer Konto $TEST_KONTO_NR, BLZ $TEST_BLZ  : ". $k[0]. " Bic: ".$k[1]."\n");
     //
     ////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@
     ////////////////////////////////////////////////////////////////////////////
     //
     print("\nTest 4: Liste der Umsaetze\n");
-    $umsaetze = $conn->getUmsaetze(array("datum:min"  => "01.01.2011",
+    $umsaetze = $conn->getUmsaetze(array("datum:min"  => "01.01.2016",
                                          "betrag:min" => "1"));
     foreach ($umsaetze as $umsatz)
     {

@@ -408,7 +408,7 @@ class connector implements \hibiscus\iconnector
   public function calculateIBAN($blz,$kontonummer)
   {
     $result=array();
-    $value = $this->send("hibiscus.xmlrpc.konto.getIBAN",array(new \xmlrpcval($blz,"string"), new \xmlrpcval($kontonummer,"string")) );
+    $value = $this->send("hibiscus.xmlrpc.konto.calculateIBAN",array(new \xmlrpcval($blz,"string"), new \xmlrpcval($kontonummer,"string")) );
     return $this->unserialize($value);
   }
  
